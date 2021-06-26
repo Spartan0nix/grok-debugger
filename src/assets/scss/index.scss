@@ -1,0 +1,31 @@
+:root {
+    --primary: #292929;
+    --secondary: #363D45;
+    --font: #F5F5F5;
+    --red: #B4181E;
+    --light-red: #E5383B;
+
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--font);
+}
+* { margin: 0; padding: 0; }
+body { height: 100vh; background-color: var(--primary);}
+
+/**
+* Input
+*/
+input {
+    font-family: inherit;
+}
+.input-text {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+}
+
+/**
+* codemirror
+*/
+.cm-regex {
+    background-color: var(--light-red)
+}

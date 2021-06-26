@@ -9,6 +9,10 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@types/codemirror": "^5.60.1",
+    "@types/collections": "^5.1.2",
+    "codemirror": "^5.62.0",
+    "collections": "^5.1.12",
     "core-js": "^3.6.5",
     "vue": "^3.0.0"
   },
