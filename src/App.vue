@@ -5,33 +5,36 @@
       <section class="grok">
         <label for="grok-input"><h3>Expression</h3></label>
         <div class="input-text">
-          <textarea id="grok-input" placeholder="Entrez votre expression régulière ..." v-model="grok" style="display: none"></textarea>
+          <textarea id="grok-input" placeholder="Entrez votre expression régulière ..." v-model="grok"></textarea>
         </div>
       </section>
       <section class="test-string">
         <label for="test-string"><h3>Chaine de test</h3></label>
         <div class="input-text">
-          <textarea id="test-string" placeholder="Entrez votre chaîne de test ..." v-model="testString" style="display: none"></textarea>
+          <textarea id="test-string" placeholder="Entrez votre chaîne de test ..." v-model="testString"></textarea>
         </div>
       </section>
       <section class="result">
         <h3>Résultat</h3>
-        <div id="grok-result"></div>
+        <pre id="grok-result">{{ result }}</pre>
       </section>
       <div>
-        <button @click="test">Test</button>
+        <button @click="getMap">getMap</button>
+        <button style="margin-left: 2rem;" @click="test">Test</button>
       </div>
     </div>
   </main>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref} from 'vue';
-import * as CodeMirror from 'codemirror';
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/theme/dracula.css';
-import 'codemirror/theme/nord.css'
-import 'codemirror/addon/display/placeholder';
+import { defineComponent, onMounted, ref, watch} from 'vue';
+// import * as CodeMirror from 'codemirror';
+// import 'codemirror/lib/codemirror.css';
+// import 'codemirror/theme/dracula.css';
+// import 'codemirror/theme/nord.css'
+// import 'codemirror/addon/display/placeholder';
+
+import { grokResolver } from './patterns/collection';
 
 export default defineComponent({
   name: 'App',
@@ -39,59 +42,99 @@ export default defineComponent({
   setup() {
     const grok = ref<string>('');
     const testString = ref<string>('');
+    const result = ref<string>('');
 
     onMounted(() => {
-      const grokEditor = CodeMirror.fromTextArea(document.getElementById('grok-input') as HTMLTextAreaElement, {
-        lineNumbers: true,
-        theme: 'dracula',
-        mode: "none",
-      })
+      // const grokEditor = CodeMirror.fromTextArea(document.getElementById('grok-input') as HTMLTextAreaElement, {
+      //   lineNumbers: true,
+      //   theme: 'dracula',
+      //   mode: "none",
+      // })
 
-      const testStringEditor = CodeMirror.fromTextArea(document.getElementById('test-string') as HTMLTextAreaElement, {
-        lineNumbers: true,
-        theme: 'dracula',
-        mode: 'grok'
-      })
+      // const testStringEditor = CodeMirror.fromTextArea(document.getElementById('test-string') as HTMLTextAreaElement, {
+      //   lineNumbers: true,
+      //   theme: 'dracula',
+      //   mode: 'grok'
+      // })
       
-      grokEditor.on("change", (element) => {
-        grok.value = element.getValue();
-        setTimeout(() => {
-          testStringEditor.setValue(testStringEditor.getValue());
-        },10)
+      // grokEditor.on("change", (element) => {
+      //   grok.value = element.getValue();
+      //   setTimeout(() => {
+      //     testStringEditor.setValue(testStringEditor.getValue());
+      //   },10)
         
-      })
+      // })
     })
     
-    CodeMirror.defineMode("grok",function() {
-      return {
-        token: function(stream, state) {
-          if(grok.value){
-            try {
-              var regexExp = new RegExp(grok.value, 'g')
-              if(stream.match(regexExp)) {
-                stream.eat(regexExp)
-                return "grok";
-              } else {
-                stream.next();
-                return null;
-              }
-            } catch (error) {
-              stream.next();
-              return null;
-            }
-          } else {
-            stream.next();
-            return null;
-          }
-        } 
-      } 
+    // CodeMirror.defineMode("grok",function() {
+    //   return {
+    //     token: function(stream, state) {
+    //       if(grok.value){
+    //         try {
+    //           var regexExp = new RegExp(grok.value, 'g')
+    //           if(stream.match(regexExp)) {
+    //             stream.eat(regexExp)
+    //             return "grok";
+    //           } else {
+    //             stream.next();
+    //             return null;
+    //           }
+    //         } catch (error) {
+    //           stream.next();
+    //           return null;
+    //         }
+    //       } else {
+    //         stream.next();
+    //         return null;
+    //       }
+    //     } 
+    //   } 
+    // })
+
+    /**
+     * ---------------------------------------------------------------------------------------------------------------------------------------------
+     * À garder
+     * ---------------------------------------------------------------------------------------------------------------------------------------------
+     */
+    watch(grok, () => {
+      resolve();
     })
-  
-    const test = async () => {
-      console.log('temp')
+
+    watch(testString, () => {
+      resolve();
+    })
+
+    const resolve = () => {
+      if(grok.value == "" || testString.value == ""){
+        clearResult();
+      } else {
+        try {
+          grokResolver.extract(grok.value, testString.value)  
+        } catch (error) {
+          console.log(error);
+        }
+      }
     }
 
-    return { grok, testString, test }
+    const clearResult = () => {
+      result.value = "";
+    }
+    /**
+     * ---------------------------------------------------------------------------------------------------------------------------------------------
+     * Fin à garder
+     * ---------------------------------------------------------------------------------------------------------------------------------------------
+     */
+
+    const getMap = () => {
+      console.log(grokResolver.getMap());
+    }
+
+    const test = () => {
+      // console.log('test')
+      grokResolver.execute(testString.value);
+    }
+
+    return { grok, testString, result, getMap, test }
   }
 });
 </script>
@@ -121,8 +164,10 @@ h3 {
   font-size: 24px;
 }
 
-.input-text {
+textarea {
   height: 7rem;
+  padding: 0.4rem;
+  font-size: 1.1em;
 }
 
 .test-string, .result {
